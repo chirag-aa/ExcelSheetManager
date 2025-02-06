@@ -8,6 +8,13 @@ import (
 	"github.com/xuri/excelize/v2"
 )
 
+func isValidationSucessfull(file [][]string) bool {
+	if len(file) <= 0 || len(file[0]) < 10 {
+		return false
+	}
+	return true
+}
+
 func ParseExcelSheet(file io.Reader) ([]models.Employee, error) {
 	f, err := excelize.OpenReader(file)
 
@@ -21,6 +28,10 @@ func ParseExcelSheet(file io.Reader) ([]models.Employee, error) {
 
 	if err != nil {
 		return nil, errors.New("Unable to get rows in excel file")
+	}
+
+	if !isValidationSucessfull(rows) {
+		return nil, errors.New("The file has faild some validations")
 	}
 
 	for _, row := range rows[1:] {

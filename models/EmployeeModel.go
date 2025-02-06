@@ -12,3 +12,8 @@ type Employee struct {
 	Email        string
 	Web          string
 }
+type Request struct {
+	Companyname string `json:companyname`
+	Firstname   string `json:firstname`
+	Email       string `json:email`
+}
