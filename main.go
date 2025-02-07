@@ -16,12 +16,12 @@ func main() {
 	redisClient, redisConnectionErr := services.NewRedisService()
 
 	if redisConnectionErr != nil {
-		fmt.Println("There is a error connecting to redis", redisConnectionErr)
+		fmt.Println(utils.Redis_Connection_Error, redisConnectionErr)
 		return
 	}
 
 	if dbServiceErr != nil {
-		fmt.Println("There is a error connecting to db", dbServiceErr)
+		fmt.Println(utils.Database_Connection_Error, dbServiceErr)
 		return
 	}
 
@@ -31,8 +31,8 @@ func main() {
 
 	router := gin.Default()
 
-	router.POST("/api/upload", dataController.UploadExcel)
-	router.GET("/api/getData", dataController.GetData)
-	router.PUT("/api/updateByEmail", dataController.UpdateDataByEmail)
-	router.Run(":8080")
+	router.POST(utils.Upload_Data_Path, dataController.UploadExcel)
+	router.GET(utils.Get_Data_Path, dataController.GetData)
+	router.PUT(utils.Update_Data_Path, dataController.UpdateDataByEmail)
+	router.Run(utils.Port)
 }

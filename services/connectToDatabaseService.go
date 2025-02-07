@@ -2,7 +2,9 @@ package services
 
 import (
 	"database/sql"
+	"fmt"
 
+	"excelsheetmanager.com/utils"
 	_ "github.com/lib/pq"
 )
 
@@ -12,7 +14,8 @@ type mySqlConnection struct {
 
 func NewMySqlConnection(connectionString string) (*mySqlConnection, error) {
 
-	db, dbConnectionerror := sql.Open("postgres", connectionString)
+	connectionString = fmt.Sprintf(connectionString, utils.Database_User, utils.Database_Name, utils.Database_Password, utils.Databse_SSL_Mode)
+	db, dbConnectionerror := sql.Open(utils.Database_Driver, connectionString)
 	if dbConnectionerror != nil {
 		return nil, dbConnectionerror
 	}

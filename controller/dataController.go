@@ -30,28 +30,31 @@ func (dc *DataController) UploadExcel(c *gin.Context) {
 	employeesData, parsingErr := utils.ParseExcelSheet(file)
 
 	if parsingErr != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Excel sheet cannot be parsed"})
+		c.JSON(http.StatusBadRequest, gin.H{utils.Message: utils.Excel_Sheet_Parsing_Error})
 		return
 	}
-
+	if !validateEmployeeData(employeesData) {
+		c.JSON(http.StatusBadRequest, gin.H{utils.Message: utils.Validation_Failed})
+		return
+	}
 	isDataSaved, dataSaveErr := dc.DataService.SaveExcelDataToDatabase(employeesData)
 
 	if dataSaveErr != nil {
 		log.Println("Error in saving the data ", dataSaveErr)
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Unable to insert the data"})
+		c.JSON(http.StatusBadRequest, gin.H{utils.Message: utils.Data_Save_Error})
 		return
 	}
 	if !isDataSaved {
 		log.Println("Error in saving the data ", dataSaveErr)
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Unable to insert the data"})
+		c.JSON(http.StatusBadRequest, gin.H{utils.Message: utils.Data_Save_Error})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "Data imported sucessfully"})
+	c.JSON(http.StatusOK, gin.H{utils.Message: utils.Data_Imported_Sucessfully})
 
 }
 
 func (dc *DataController) GetData(c *gin.Context) {
-	employeesData, data, err := dc.DataService.GetDataFromDatabaseOrRedis()
+	employeesData, data, err := dc.DataService.GetDataFromDatabaseOrRedis(false)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Unable to get the data"})
 		return
@@ -69,7 +72,11 @@ func (dc *DataController) UpdateDataByEmail(c *gin.Context) {
 	bindErr := c.ShouldBindJSON(&requestBody)
 
 	if bindErr != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Unable to bind the data"})
+		c.JSON(http.StatusBadRequest, gin.H{utils.Message: utils.Bind_Error})
+		return
+	}
+	if !validateRequestBody(requestBody) {
+		c.JSON(http.StatusBadRequest, gin.H{utils.Message: utils.Validation_Failed})
 		return
 	}
 	updatedEmployeeData, err := dc.DataService.UpdateEmployeeByEmail(requestBody)
@@ -80,4 +87,18 @@ func (dc *DataController) UpdateDataByEmail(c *gin.Context) {
 	}
 	c.JSON(200, gin.H{"data": updatedEmployeeData})
 
+}
+
+func validateRequestBody(requestBody models.Request) bool {
+	if requestBody.Companyname == "" || requestBody.Email == "" || requestBody.Firstname == "" {
+		return false
+	}
+	return true
+}
+
+func validateEmployeeData(employeesData []models.Employee) bool {
+	if len(employeesData) == 0 || employeesData == nil {
+		return false
+	}
+	return true
 }

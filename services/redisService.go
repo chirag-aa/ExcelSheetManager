@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"excelsheetmanager.com/models"
+	"excelsheetmanager.com/utils"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -19,9 +20,9 @@ var ctx = context.Background()
 func NewRedisService() (*RedisService, error) {
 
 	redisClient := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "",
-		DB:       0,
+		Addr:     utils.Redis_Host,
+		Password: utils.Redis_Password,
+		DB:       utils.Redis_Default_DB,
 	})
 
 	_, redisConnectionErr := redisClient.Ping(ctx).Result()
@@ -42,7 +43,7 @@ func (rc *RedisService) SaveDataToRedis(employeesData []models.Employee) (bool, 
 	if err != nil {
 		return false, err
 	}
-	redisInsertionErr := rc.redisClient.Set(ctx, "employeeData", marshalEmployeesData, 5*time.Minute).Err()
+	redisInsertionErr := rc.redisClient.Set(ctx, utils.Redis_Key, marshalEmployeesData, utils.Cache_Expiry_time*time.Minute).Err()
 
 	if redisInsertionErr != nil {
 		return false, redisInsertionErr
@@ -53,7 +54,7 @@ func (rc *RedisService) SaveDataToRedis(employeesData []models.Employee) (bool, 
 }
 
 func (rc *RedisService) GetDataFromRedis() (string, error) {
-	employeesData, getErr := rc.redisClient.Get(ctx, "employeeData").Result()
+	employeesData, getErr := rc.redisClient.Get(ctx, utils.Redis_Key).Result()
 
 	if getErr != nil {
 		return "", getErr
